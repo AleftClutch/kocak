@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Outfit Studio</title>
+<style>
+:root {
+  --bg: #f7f8fb;
+  --card: #ffffff;
+  --ink: #1f2430;
+  --muted: #6b7280;
+  --accent: #4f7cff;
+  --accent2: #eef3ff;
+  --shadow: 0 10px 30px rgba(31,36,48,.08);
+  --danger: #ff4757;
+}
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html, body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+}
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+}
+.hidden {
+  display: none !important;
+}
+
+/* LOGIN SCREEN */
+.login {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px;
+  max-width: 430px;
+  margin: 0 auto;
+}
+.login h1 {
+  font-size: 28px;
+  margin: 0 0 6px;
+}
+.login h1 span {
+  color: var(--accent);
+}
+.login p {
+  color: var(--muted);
+  margin: 0 0 26px;
+  font-size: 14px;
+}
+.field {
+  background: var(--card);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  font-size: 16px;
+  background: transparent;
+  color: var(--ink);
+}
+.btn {
+  width: 100%;
+  border: 0;
+  border-radius: 18px;
+  padding: 16px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(79,124,255,.28);
+}
+.btn:active {
+  transform: scale(.98);
+}
+.note {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* MAIN HEADER */
+header {
+  padding: 16px 20px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+h1 {
+  font-size: 20px;
+  margin: 0;
+}
+h1 span {
+  color: var(--accent);
+}
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  cursor: pointer;
+}
+.icon-btn:active {
+  transform: scale(.94);
+}
+
+/* STAGE & CANVAS */
+.stage {
+  flex: 1;
+  position: relative;
+  padding: 6px 18px 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.canvas {
+  position: relative;
+  width: 100%;
+  max-width: 330px;
+  aspect-ratio: 3 / 4.2;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--accent2);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 99px;
+  z-index: 10;
+}
+
+/* POSISI LAYER PAKAIAN */
+.layer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+.layer img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+#outerLayer {
+  top: 10%;
+  width: 55%;
+  height: 25%;
+  z-index: 3;
+}
+
+#topLayer {
+  top: 36%;
+  width: 50%;
+  height: 23%;
+  z-index: 2;
+}
+
+#bottomLayer {
+  top: 60%;
+  width: 48%;
+  height: 35%;
+  z-index: 1;
+}
+
+.layer.enter-right { transform: translateX(100%); opacity: 0; }
+.layer.enter-left { transform: translateX(-100%); opacity: 0; }
+
+.empty-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  z-index: 0;
+}
+
+/* PAGER & CONTROLS */
+.pager {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: #d7dce6;
+  transition: .25s;
+}
+.dot.active {
+  width: 20px;
+  background: var(--accent);
+}
+.controls {
+  padding: 0 18px 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.tab {
+  border: 0;
+  background: var(--card);
+  border-radius: 18px;
+  padding: 12px 6px;
+  box-shadow: var(--shadow);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab.active {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-2px);
+}
+.hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0 24px 6px;
+}
+.actions {
+  padding: 6px 18px calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+}
+.actions .btn {
+  flex: 1;
+  border-radius: 18px;
+  padding: 15px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.btn.ghost {
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+/* MODAL SHEETS & FULL SLOT GRID */
+.sheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,24,35,.4);
+  display: none;
+  z-index: 20;
+}
+.sheet.open {
+  display: block;
+}
+.sheet-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--card);
+  border-radius: 26px 26px 0 0;
+  padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+  animation: up .3s ease-out;
+  max-height: 88dvh;
+  overflow: auto;
+}
+@keyframes up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.sheet-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* FULL SLOT CATALOGUE STYLES */
+.cat-section {
+  margin-bottom: 20px;
+}
+.cat-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.slot-add {
+  aspect-ratio: 1;
+  border: 2px dashed #d8deea;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  background: #f9faff;
+}
+.slot-add span {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+.slot-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: #f4f6fb;
+  border: 1px solid #e5e9f2;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.slot-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.slot-del {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--danger);
+  color: #fff;
+  border: 0;
+  border-radius: 99px;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(255,71,87,.4);
+}
+
+/* CONFIRM MODAL */
+.confirm-box {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: none;
+  place-items: center;
+  z-index: 40;
+  padding: 20px;
+}
+.confirm-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+.confirm-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.confirm-card p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* HISTORY LIST */
+.saved-list {
+  max-height: 50vh;
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+}
+.saved {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #eef0f5;
+  border-radius: 16px;
+}
+.saved-info {
+  flex: 1;
+}
+.saved-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.saved-actions {
+  display: flex;
+  gap: 6px;
+}
+.saved-btn {
+  border: 0;
+  background: #f1f3f8;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%) translateY(20px);
+  background: #1f2430;
+  color: #fff;
+  padding: 11px 18px;
+  border-radius: 14px;
+  font-size: 13px;
+  opacity: 0;
+  transition: .3s;
+  z-index: 50;
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%);
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginScreen">
+ <h1>Outfit <span>Studio</span></h1>
+ <p>Masuk dengan nama akun untuk menyimpan koleksi pakaian Anda.</p>
+ <div class="field">
+  <label>Nama Akun</label>
+  <input id="usernameInput" placeholder="Contoh: rina123" autocomplete="off">
+ </div>
+ <button class="btn primary" id="loginBtn">Masuk</button>
+ <div class="note">Data akan disimpan secara otomatis di perangkat ini.</div>
+</div>
+
+<!-- APP UTAMA -->
+<div class="app hidden" id="mainScreen">
+ <header>
+  <h1>Outfit <span>Studio</span></h1>
+  <div style="display:flex;gap:8px">
+   <button class="icon-btn" id="uploadBtn" title="Unggah PNG">＋</button>
+   <button class="icon-btn" id="historyBtn" title="Koleksi Tersimpan">🕘</button>
+   <button class="icon-btn" id="logoutBtn" title="Keluar">⎋</button>
+  </div>
+ </header>
+
+ <div class="stage">
+  <div class="canvas" id="canvas">
+   <div class="badge">768 × 1024</div>
+   <div class="empty-msg" id="emptyMsg">
+    Belum ada item.<br>Klik tombol <b>＋</b> di atas untuk mengunggah gambar PNG transparan.
+   </div>
+   <div class="layer" id="outerLayer"></div>
+   <div class="layer" id="topLayer"></div>
+   <div class="layer" id="bottomLayer"></div>
+  </div>
+ </div>
+
+ <div class="pager" id="pager"></div>
+
+ <div class="controls">
+  <button class="tab active" data-cat="outer">Outer</button>
+  <button class="tab" data-cat="top">Kaos</button>
+  <button class="tab" data-cat="bottom">Celana</button>
+ </div>
+
+ <div class="hint">Usap / Geser kiri atau kanan pada gambar untuk mengganti item</div>
+
+ <div class="actions">
+  <button class="btn ghost" id="randomBtn">🎲 Acak</button>
+  <button class="btn primary" id="saveBtn">💾 Simpan</button>
+ </div>
+</div>
+
+<!-- MODAL FULL SLOT PAKAIAN -->
+<div class="sheet" id="uploadSheet">
+ <div class="sheet-card">
+  <div class="sheet-head">
+   <h2>Katalog Slot Pakaian</h2>
+   <button class="icon-btn" id="closeUploadBtn">✕</button>
+  </div>
+
+  <!-- OUTER -->
+  <div class="cat-section">
+   <div class="cat-title">
+    <span>Outer (Jaket / Hoodie)</span>
+   </div>
+   <div class="slot-grid" id="slotsOuter"></div>
+   <input type="file" class="hidden" accept="image/png,image/webp" multiple id="fileOuter">
+  </div>
+
+  <!-- KAOS -->
+  <div class="cat-section">
+   <div class="cat-title">
+    <span>Kaos / Dalaman</span>
+   </div>
+   <div class="slot-grid" id="slotsTop"></div>
+   <input type="file" class="hidden" accept="image/png,image/webp" multiple id="fileTop">
+  </div>
+
+  <!-- CELANA -->
+  <div class="cat-section">
+   <div class="cat-title">
+    <span>Celana / Bawahan</span>
+   </div>
+   <div class="slot-grid" id="slotsBottom"></div>
+   <input type="file" class="hidden" accept="image/png,image/webp" multiple id="fileBottom">
+  </div>
+ </div>
+</div>
+
+<!-- POPUP PERINGATAN KONFIRMASI -->
+<div class="confirm-box" id="confirmBox">
+ <div class="confirm-card">
+  <h3>Tutup Katalog?</h3>
+  <p>Perubahan dan penambahan pakaian akan langsung diperbarui di kanvas.</p>
+  <div class="confirm-actions">
+   <button class="btn ghost" id="cancelCloseBtn">Batal</button>
+   <button class="btn primary" id="confirmCloseBtn">Ya, Tutup</button>
+  </div>
+ </div>
+</div>
+
+<!-- MODAL RIWAYAT -->
+<div class="sheet" id="historySheet">
+ <div class="sheet-card">
+  <div class="sheet-head">
+   <h2>Kombinasi Tersimpan</h2>
+   <button class="icon-btn" id="closeHistoryBtn">✕</button>
+  </div>
+  <div class="saved-list" id="savedList"></div>
+ </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+const CATS = ["outer", "top", "bottom"];
+const sessionKey = "outfitStudioSession";
+
+let currentUser = null;
+let items = { outer: [], top: [], bottom: [] };
+const state = { outer: 0, top: 0, bottom: 0, active: "outer" };
+
+const layerEls = {
+  outer: document.getElementById("outerLayer"),
+  top: document.getElementById("topLayer"),
+  bottom: document.getElementById("bottomLayer")
+};
+
+const pagerEl = document.getElementById("pager");
+const canvasEl = document.getElementById("canvas");
+const emptyMsg = document.getElementById("emptyMsg");
+const toastBox = document.getElementById("toastEl");
+const loginScreen = document.getElementById("loginScreen");
+const mainScreen = document.getElementById("mainScreen");
+const usernameInput = document.getElementById("usernameInput");
+
+function accountKeys(u) {
+  return {
+    items: `outfitStudioItems_v3_${u}`,
+    outfits: `outfitStudioOutfits_v3_${u}`
+  };
+}
+
+function loadAccountData(u) {
+  const k = accountKeys(u);
+  try {
+    items = JSON.parse(localStorage.getItem(k.items) || '{"outer":[],"top":[],"bottom":[]}');
+  } catch(e) {
+    items = { outer: [], top: [], bottom: [] };
+  }
+  state.outer = 0; state.top = 0; state.bottom = 0; state.active = "outer";
+}
+
+function saveAccountItems() {
+  if (!currentUser) return;
+  try {
+    localStorage.setItem(accountKeys(currentUser).items, JSON.stringify(items));
+  } catch(e) {
+    showToast("Gagal menyimpan: Memori lokal penuh");
+  }
+}
+
+function getSavedOutfits() {
+  if (!currentUser) return [];
+  try {
+    return JSON.parse(localStorage.getItem(accountKeys(currentUser).outfits) || "[]");
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveSavedOutfits(arr) {
+  if (currentUser) {
+    localStorage.setItem(accountKeys(currentUser).outfits, JSON.stringify(arr));
+  }
+}
+
+function render(anim = false, dir = 1) {
+  let hasAnyItem = false;
+
+  for (const c of CATS) {
+    const list = items[c] || [];
+    if (list.length > 0) {
+      hasAnyItem = true;
+      if (state[c] >= list.length) state[c] = 0;
+      const it = list[state[c]];
+      layerEls[c].innerHTML = `<img src="${it.img}" alt="${it.name}">`;
+    } else {
+      layerEls[c].innerHTML = "";
+    }
+  }
+
+  emptyMsg.style.display = hasAnyItem ? "none" : "flex";
+
+  const activeList = items[state.active] || [];
+  if (activeList.length > 0) {
+    pagerEl.innerHTML = activeList.map((_, idx) => 
+      `<div class="dot ${idx === state[state.active] ? "active" : ""}"></div>`
+    ).join("");
+  } else {
+    pagerEl.innerHTML = "";
+  }
+
+  document.querySelectorAll(".tab").forEach(b => {
+    b.classList.toggle("active", b.dataset.cat === state.active);
+  });
+
+  if (anim && activeList.length > 0) {
+    const el = layerEls[state.active];
+    el.classList.add(dir > 0 ? "enter-right" : "enter-left");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.classList.remove("enter-right", "enter-left");
+      });
+    });
+  }
+}
+
+function swipe(d) {
+  const list = items[state.active] || [];
+  if (list.length === 0) return;
+  state[state.active] = (state[state.active] + d + list.length) % list.length;
+  render(true, d);
+}
+
+// SWIPE TOUCH & CLICK
+let sx = null, sy = null;
+canvasEl.addEventListener("touchstart", e => {
+  sx = e.touches[0].clientX;
+  sy = e.touches[0].clientY;
+}, { passive: true });
+
+canvasEl.addEventListener("touchend", e => {
+  if (sx === null) return;
+  const dx = e.changedTouches[0].clientX - sx;
+  const dy = e.changedTouches[0].clientY - sy;
+  if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+    swipe(dx < 0 ? 1 : -1);
+  }
+  sx = null;
+}, { passive: true });
+
+canvasEl.addEventListener("click", e => {
+  const r = canvasEl.getBoundingClientRect();
+  swipe(e.clientX > r.left + r.width / 2 ? 1 : -1);
+});
+
+document.querySelectorAll(".tab").forEach(b => {
+  b.onclick = () => {
+    state.active = b.dataset.cat;
+    render();
+  };
+});
+
+function showToast(m) {
+  toastBox.textContent = m;
+  toastBox.classList.add("show");
+  setTimeout(() => toastBox.classList.remove("show"), 1800);
+}
+
+// LOGIN & LOGOUT
+function login() {
+  const name = usernameInput.value.trim().toLowerCase();
+  if (!name) {
+    showToast("Isi nama akun terlebih dahulu");
+    return;
+  }
+  currentUser = name;
+  localStorage.setItem(sessionKey, name);
+  loadAccountData(name);
+  loginScreen.classList.add("hidden");
+  mainScreen.classList.remove("hidden");
+  render();
+  showToast(`Selamat datang, ${name} 👋`);
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem(sessionKey);
+  mainScreen.classList.add("hidden");
+  loginScreen.classList.remove("hidden");
+  usernameInput.value = "";
+  showToast("Berhasil keluar");
+}
+
+document.getElementById("loginBtn").onclick = login;
+usernameInput.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+document.getElementById("logoutBtn").onclick = logout;
+
+const existingSession = localStorage.getItem(sessionKey);
+if (existingSession) {
+  usernameInput.value = existingSession;
+  login();
+}
+
+// FULL SLOT GRID CATALOGUE
+const uploadSheet = document.getElementById("uploadSheet");
+const confirmBox = document.getElementById("confirmBox");
+
+document.getElementById("uploadBtn").onclick = () => {
+  renderSlotCatalog();
+  uploadSheet.classList.add("open");
+};
+
+// PERINGATAN KONFIRMASI SAAT MENUTUP (TOMBOL X)
+document.getElementById("closeUploadBtn").onclick = () => confirmBox.style.display = "grid";
+uploadSheet.addEventListener("click", e => {
+  if (e.target === uploadSheet) confirmBox.style.display = "grid";
+});
+
+document.getElementById("cancelCloseBtn").onclick = () => confirmBox.style.display = "none";
+document.getElementById("confirmCloseBtn").onclick = () => {
+  confirmBox.style.display = "none";
+  uploadSheet.classList.remove("open");
+  render();
+};
+
+function renderSlotCatalog() {
+  for (const c of CATS) {
+    const container = document.getElementById(`slots${c.charAt(0).toUpperCase() + c.slice(1)}`);
+    const list = items[c] || [];
+    
+    let html = `
+      <div class="slot-add" onclick="triggerFileInput('${c}')">
+        <span>＋</span>
+        <div>Tambah</div>
+      </div>
+    `;
+
+    html += list.map(item => `
+      <div class="slot-item">
+        <img src="${item.img}">
+        <button class="slot-del" onclick="deleteItem('${c}', ${item.id})">✕</button>
+      </div>
+    `).join("");
+
+    container.innerHTML = html;
+  }
+}
+
+window.triggerFileInput = function(cat) {
+  document.getElementById(`file${cat.charAt(0).toUpperCase() + cat.slice(1)}`).click();
+};
+
+function processAndSaveFiles(cat, files) {
+  if (!files || files.length === 0) return;
+  let count = 0;
+
+  Array.from(files).forEach(file => {
+    if (!/image\/(png|webp)/.test(file.type)) {
+      showToast("Gunakan file format PNG transparan");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDimension = 500;
+        let w = img.width;
+        let h = img.height;
+
+        if (w > maxDimension || h > maxDimension) {
+          if (w > h) {
+            h = Math.round((h * maxDimension) / w);
+            w = maxDimension;
+          } else {
+            w = Math.round((w * maxDimension) / h);
+            h = maxDimension;
+          }
+        }
+
+        const cv = document.createElement("canvas");
+        cv.width = w;
+        cv.height = h;
+        const ctx = cv.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = cv.toDataURL("image/png");
+
+        if (!items[cat]) items[cat] = [];
+        items[cat].push({
+          id: Date.now() + Math.random(),
+          name: `${cat} #${items[cat].length + 1}`,
+          img: dataUrl
+        });
+
+        count++;
+        if (count === files.length) {
+          saveAccountItems();
+          renderSlotCatalog();
+          showToast("Item berhasil ditambahkan ✨");
+        }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById("fileOuter").onchange = e => processAndSaveFiles("outer", e.target.files);
+document.getElementById("fileTop").onchange = e => processAndSaveFiles("top", e.target.files);
+document.getElementById("fileBottom").onchange = e => processAndSaveFiles("bottom", e.target.files);
+
+window.deleteItem = function(cat, id) {
+  items[cat] = items[cat].filter(i => i.id !== id);
+  saveAccountItems();
+  renderSlotCatalog();
+  showToast("Item dihapus");
+};
+
+// ACAK & SIMPAN
+const historySheet = document.getElementById("historySheet");
+const savedListEl = document.getElementById("savedList");
+
+document.getElementById("randomBtn").onclick = () => {
+  for (const c of CATS) {
+    if (items[c] && items[c].length > 0) {
+      state[c] = Math.floor(Math.random() * items[c].length);
+    }
+  }
+  render(true, 1);
+  showToast("Kombinasi acak dibuat ✨");
+};
+
+document.getElementById("saveBtn").onclick = () => {
+  const currentSaved = getSavedOutfits();
+  const outfitObj = {
+    id: Date.now(),
+    name: `Outfit #${currentSaved.length + 1}`,
+    indices: { outer: state.outer, top: state.top, bottom: state.bottom }
+  };
+  currentSaved.unshift(outfitObj);
+  saveSavedOutfits(currentSaved);
+  showToast("Outfit berhasil disimpan 💾");
+};
+
+function renderSavedList() {
+  const list = getSavedOutfits();
+  if (list.length === 0) {
+    savedListEl.innerHTML = `<div class="saved-meta" style="text-align:center;padding:20px;">Belum ada kombinasi outfit yang disimpan.</div>`;
+    return;
+  }
+
+  savedListEl.innerHTML = list.map(o => `
+    <div class="saved">
+      <div class="saved-info">
+        <div class="saved-name">${o.name}</div>
+      </div>
+      <div class="saved-actions">
+        <button class="saved-btn" onclick="applyOutfit(${o.indices.outer}, ${o.indices.top}, ${o.indices.bottom})">Gunakan</button>
+        <button class="saved-btn" style="color:#ff4757;" onclick="deleteOutfit(${o.id})">Hapus</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+window.applyOutfit = function(outerIdx, topIdx, bottomIdx) {
+  state.outer = outerIdx || 0;
+  state.top = topIdx || 0;
+  state.bottom = bottomIdx || 0;
+  render(true, 1);
+  historySheet.classList.remove("open");
+  showToast("Outfit diterapkan ✨");
+};
+
+window.deleteOutfit = function(id) {
+  const list = getSavedOutfits().filter(o => o.id !== id);
+  saveSavedOutfits(list);
+  renderSavedList();
+  showToast("Outfit dihapus");
+};
+
+document.getElementById("historyBtn").onclick = () => {
+  renderSavedList();
+  historySheet.classList.add("open");
+};
+document.getElementById("closeHistoryBtn").onclick = () => historySheet.classList.remove("open");
+historySheet.addEventListener("click", e => {
+  if (e.target === historySheet) historySheet.classList.remove("open");
+});
+
+if (currentUser) render();
+</script>
+</body>
+</html>
